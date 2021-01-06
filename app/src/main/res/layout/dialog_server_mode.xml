@@ -21,6 +21,6 @@
         android:textSize="20sp"
         android:textColor="@color/black"
         android:textAlignment="center"
-        android:text="IP:"/>
+        android:text=""/>
 
 </LinearLayout>
