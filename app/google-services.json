@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1036900008966",
+    "project_id": "amovtp3",
+    "storage_bucket": "amovtp3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1036900008966:android:75379a0f75d176d5732f87",
+        "android_client_info": {
+          "package_name": "pt.isec.a21250089.amov_tp2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1036900008966-6r2abrsvdflsq9l4a49aqva0ijge32r6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pt.isec.a21250089.amov_tp2",
+            "certificate_hash": "75c567f84def04a9051dd4e3e0ec583a7b02d57d"
+          }
+        },
+        {
+          "client_id": "1036900008966-hjq0pgqjgul54a21pgnkq9tnhetog6cv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxbEV3tAED_4mG2nJENccsJps_nsJxF_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1036900008966-hjq0pgqjgul54a21pgnkq9tnhetog6cv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
