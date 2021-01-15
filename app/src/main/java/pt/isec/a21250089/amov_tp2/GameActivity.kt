@@ -13,6 +13,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.dialog_server_mode.*
 import kotlinx.android.synthetic.main.dialog_server_mode.view.*
 
@@ -23,6 +26,8 @@ class GameActivity : AppCompatActivity() {
     private var dlg: AlertDialog? = null
     lateinit var nomeEquipa :String
     var nPlayers :Int = 0
+    var db = Firebase.firestore
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +38,12 @@ class GameActivity : AppCompatActivity() {
 
         println(nomeEquipa)
         println(nPlayers)
+
+        var data = hashMapOf(
+            "p2" to "chegou",
+            "flag" to false
+        )
+        db.collection("Equipas").document("${nomeEquipa}").set(data, SetOptions.merge())
     }
 
 }

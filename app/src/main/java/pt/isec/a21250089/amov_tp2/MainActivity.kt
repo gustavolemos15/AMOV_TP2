@@ -14,6 +14,9 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.InputStream
@@ -29,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     val SERVER_PORT: Int = 9999
     var nome :String = ""
     var nplayers :Int = 2
+    var idPlayer :String = ""
     private var socket: Socket? = null
     private val socketI: InputStream?
         get() = socket?.getInputStream()
@@ -36,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         get() = socket?.getOutputStream()
     var serverSocket: ServerSocket? = null
     var strIpAdress :String = ""
+    var db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,10 +111,19 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "Erro", Toast.LENGTH_LONG).show()
                     finish()
                 } else {
-                    if(nplayers > 5)
-                        fl = false
-                    if(fl)
-                        conectServer()
+                    var docData = hashMapOf(
+                        Constants.NPLAYERS to nplayers,
+                        Constants.FLAG to false
+                    )
+                    db.collection(Constants.COLLECTION).document("${nome}").set(docData)
+                    var i = 1
+                    while (i <= nplayers){
+                        var d = hashMapOf( "p${i}" to arrayListOf(0,0))
+                        db.collection(Constants.COLLECTION).document("${nome}").set(d, SetOptions.merge())
+                        i++
+                    }
+                    conectServer()
+
                 }
             }
                 setNegativeButton("Voltar") { _: DialogInterface, _: Int ->
@@ -159,18 +173,20 @@ class MainActivity : AppCompatActivity() {
             }
         if (serverSocket != null || socket != null)
             return
-        var menssagem: Mensagem = Mensagem(nome, nplayers)
-        var strMenssagem :String = Gson().toJson(menssagem)
+
         thread {
             var i = 1
             serverSocket = ServerSocket(SERVER_PORT)
             do {
+                var menssagem: Mensagem = Mensagem(nome, "p${i+1}" ,nplayers )
+                var strMenssagem :String = Gson().toJson(menssagem)
                 serverSend(serverSocket!!.accept(), strMenssagem)
                 i++
             }while (i < nplayers)
             val intent = Intent(this,GameActivity::class.java)
-            intent.putExtra("NOME",nome)
-            intent.putExtra("NPLAYERS", nplayers)
+            intent.putExtra(Constants.INTENT_NOME_EQUIPA,nome)
+            intent.putExtra(Constants.INTENT_NJOGADORES, nplayers)
+            intent.putExtra(Constants.INTENT_IDJOGADOR, "p1")
             startActivity(intent)
        }
             dlg?.show()
@@ -253,13 +269,20 @@ class MainActivity : AppCompatActivity() {
                 var strMen = bufI.readLine()
                 var mens = Gson().fromJson(strMen, Mensagem::class.java)
                 nome = mens.nome
-                nplayers = mens.idPlayer
+                nplayers = mens.nPlayers
+                idPlayer = mens.idPlayer
             } catch (_: Exception) {
 
             }
-            val intent = Intent(this,GameActivity::class.java)
-            intent.putExtra("NOME",nome)
-            intent.putExtra("NPLAYERS", nplayers)
+            //TODO: ler coordenadas
+            var lat = 0.000
+            var long = 0.000
+            var dc = hashMapOf( idPlayer to arrayListOf(lat, long) )
+            db.collection(Constants.COLLECTION).document("${nome}").set(dc, SetOptions.merge())
+            val intent = Intent(this,WaitingRoomActivity::class.java)
+            intent.putExtra(Constants.INTENT_NOME_EQUIPA,nome)
+            intent.putExtra(Constants.INTENT_NJOGADORES, nplayers)
+            intent.putExtra(Constants.INTENT_IDJOGADOR, idPlayer)
             startActivity(intent)
         }
 
@@ -267,9 +290,10 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-class Mensagem(n : String, np :Int){
-    var nome :String = n;
-    var idPlayer :Int = np;
+class Mensagem(n : String, id :String, np :Int){
+    var nome :String = n
+    var idPlayer :String = id
+    var nPlayers : Int = np
 }
 
 
