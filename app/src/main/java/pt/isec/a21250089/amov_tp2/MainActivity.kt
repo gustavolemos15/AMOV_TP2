@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.net.wifi.WifiManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.Spanned
@@ -14,9 +13,9 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.InputStream
@@ -25,7 +24,6 @@ import java.io.PrintStream
 import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
-
 
 
 class MainActivity : AppCompatActivity() {
@@ -40,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         get() = socket?.getOutputStream()
     var serverSocket: ServerSocket? = null
     var strIpAdress :String = ""
-    var db = Firebase.firestore
+    var db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,11 +48,12 @@ class MainActivity : AppCompatActivity() {
 
         val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
         val ip = wifiManager.connectionInfo.ipAddress
-        strIpAdress = String.format("%d.%d.%d.%d",
-                ip and 0xff,
-                (ip shr 8) and 0xff,
-                (ip shr 16) and 0xff,
-                (ip shr 24) and 0xff
+        strIpAdress = String.format(
+            "%d.%d.%d.%d",
+            ip and 0xff,
+            (ip shr 8) and 0xff,
+            (ip shr 16) and 0xff,
+            (ip shr 24) and 0xff
         )
         println(strIpAdress)
 
@@ -76,13 +75,19 @@ class MainActivity : AppCompatActivity() {
             maxLines = 1
         }
         var ll = LinearLayout(this).apply {
-            val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
             this.setPadding(50, 50, 50, 50)
             layoutParams = params
             setBackgroundColor(Color.rgb(240, 224, 208))
             orientation = LinearLayout.VERTICAL
             addView(TextView(context).apply {
-                val paramsTV = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                val paramsTV = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
                 layoutParams = paramsTV
                 text = String.format("Nome da equipa: ")
                 textSize = 20f
@@ -91,7 +96,10 @@ class MainActivity : AppCompatActivity() {
             })
             addView(edNomeEquipa)
             addView(TextView(context).apply {
-                val paramsTV = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                val paramsTV = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
                 layoutParams = paramsTV
                 text = String.format("Numero de elementos: ")
                 textSize = 20f
@@ -118,8 +126,11 @@ class MainActivity : AppCompatActivity() {
                     db.collection(Constants.COLLECTION).document("${nome}").set(docData)
                     var i = 1
                     while (i <= nplayers){
-                        var d = hashMapOf( "p${i}" to arrayListOf(0,0))
-                        db.collection(Constants.COLLECTION).document("${nome}").set(d, SetOptions.merge())
+                        var d = hashMapOf("p${i}" to arrayListOf(0, 0))
+                        db.collection(Constants.COLLECTION).document("${nome}").set(
+                            d,
+                            SetOptions.merge()
+                        )
                         i++
                     }
                     conectServer()
@@ -139,20 +150,29 @@ class MainActivity : AppCompatActivity() {
     fun conectServer(){
 
             val ll = LinearLayout(this).apply {
-                val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
                 this.setPadding(50, 50, 50, 50)
                 layoutParams = params
                 setBackgroundColor(Color.rgb(240, 224, 208))
                 orientation = LinearLayout.HORIZONTAL
                 addView(ProgressBar(context).apply {
                     isIndeterminate = true
-                    val paramsPB = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    val paramsPB = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
                     paramsPB.gravity = Gravity.CENTER_VERTICAL
                     layoutParams = paramsPB
                     indeterminateTintList = ColorStateList.valueOf(Color.rgb(96, 96, 32))
                 })
                 addView(TextView(context).apply {
-                    val paramsTV = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    val paramsTV = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
                     layoutParams = paramsTV
                     text = "IP: ${strIpAdress}"
                     textSize = 20f
@@ -178,13 +198,17 @@ class MainActivity : AppCompatActivity() {
             var i = 1
             serverSocket = ServerSocket(SERVER_PORT)
             do {
-                var menssagem: Mensagem = Mensagem(nome, "p${i+1}" ,nplayers )
+                var menssagem: Mensagem = Mensagem(nome, "p${i + 1}", nplayers)
                 var strMenssagem :String = Gson().toJson(menssagem)
                 serverSend(serverSocket!!.accept(), strMenssagem)
                 i++
             }while (i < nplayers)
-            val intent = Intent(this,GameActivity::class.java)
-            intent.putExtra(Constants.INTENT_NOME_EQUIPA,nome)
+
+            var d = hashMapOf(Constants.FLAG to true)
+            db.collection(Constants.COLLECTION).document("${nome}").set(d, SetOptions.merge())
+
+            val intent = Intent(this, GameActivity::class.java)
+            intent.putExtra(Constants.INTENT_NOME_EQUIPA, nome)
             intent.putExtra(Constants.INTENT_NJOGADORES, nplayers)
             intent.putExtra(Constants.INTENT_IDJOGADOR, "p1")
             startActivity(intent)
@@ -193,7 +217,7 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-    fun serverSend(newSocket: Socket, menssagem :String){
+    fun serverSend(newSocket: Socket, menssagem: String){
                 socket = newSocket
            try{
                 //val bufI = socketI!!.bufferedReader()
@@ -220,12 +244,12 @@ class MainActivity : AppCompatActivity() {
             maxLines = 1
             filters = arrayOf(object : InputFilter {
                 override fun filter(
-                        source: CharSequence?,
-                        start: Int,
-                        end: Int,
-                        dest: Spanned?,
-                        dstart: Int,
-                        dend: Int
+                    source: CharSequence?,
+                    start: Int,
+                    end: Int,
+                    dest: Spanned?,
+                    dstart: Int,
+                    dend: Int
                 ): CharSequence? {
                     if (source?.none { it.isDigit() || it == '.' } == true)
                         return ""
@@ -258,7 +282,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun conectClient(ip :String){
+    fun conectClient(ip: String){
         if (socket != null)
             return
         thread {
@@ -269,18 +293,15 @@ class MainActivity : AppCompatActivity() {
                 var strMen = bufI.readLine()
                 var mens = Gson().fromJson(strMen, Mensagem::class.java)
                 nome = mens.nome
+                println(nome)
                 nplayers = mens.nPlayers
                 idPlayer = mens.idPlayer
             } catch (_: Exception) {
-
+                finish()
             }
-            //TODO: ler coordenadas
-            var lat = 0.000
-            var long = 0.000
-            var dc = hashMapOf( idPlayer to arrayListOf(lat, long) )
-            db.collection(Constants.COLLECTION).document("${nome}").set(dc, SetOptions.merge())
-            val intent = Intent(this,WaitingRoomActivity::class.java)
-            intent.putExtra(Constants.INTENT_NOME_EQUIPA,nome)
+
+            val intent = Intent(this, GameActivity::class.java)
+            intent.putExtra(Constants.INTENT_NOME_EQUIPA, nome)
             intent.putExtra(Constants.INTENT_NJOGADORES, nplayers)
             intent.putExtra(Constants.INTENT_IDJOGADOR, idPlayer)
             startActivity(intent)
@@ -290,7 +311,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-class Mensagem(n : String, id :String, np :Int){
+class Mensagem(n: String, id: String, np: Int){
     var nome :String = n
     var idPlayer :String = id
     var nPlayers : Int = np
