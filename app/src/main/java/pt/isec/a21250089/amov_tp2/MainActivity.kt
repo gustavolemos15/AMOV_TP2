@@ -25,7 +25,7 @@ import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 
-
+//  API KEY -> AIzaSyDzAHftYPxUaqg4QTyBaINUEvn_BH3Vlik
 class MainActivity : AppCompatActivity() {
     val SERVER_PORT: Int = 9999
     var nome :String = ""
