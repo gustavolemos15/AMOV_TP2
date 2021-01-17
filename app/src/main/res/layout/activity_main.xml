@@ -17,7 +17,7 @@
             android:id="@+id/btnServer"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="Server"
+            android:text="@string/server"
             android:padding="10dp"
             android:layout_gravity="center" />
 
@@ -25,7 +25,7 @@
             android:id="@+id/btnClient"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="Client"
+            android:text="@string/client"
             android:padding="10dp"
             android:layout_gravity="center"/>
     </LinearLayout>

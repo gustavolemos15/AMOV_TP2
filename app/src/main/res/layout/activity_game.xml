@@ -30,7 +30,8 @@
         android:layout_height="125dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/white">
+        android:background="@color/white"
+        android:gravity="center">
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -39,11 +40,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingVertical="4dp">
+                android:paddingVertical="4dp"
+                android:gravity="center">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Distância ao Jogador "></TextView>
+                    android:text="@string/dist_ncia_ao_jogador"></TextView>
                 <TextView
                     android:id="@+id/tvJog2"
                     android:text="2: "
@@ -51,7 +53,7 @@
                     android:layout_height="wrap_content"></TextView>
                 <TextView
                     android:id="@+id/tvDist2"
-                    android:text="500m"
+                    android:text="@string/m"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"></TextView>
             </LinearLayout>
@@ -59,11 +61,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingVertical="4dp">
+                android:paddingVertical="4dp"
+                android:gravity="center">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Distância ao Jogador "></TextView>
+                    android:text="@string/dist_ncia_ao_jogador"></TextView>
                 <TextView
                     android:id="@+id/tvJog1"
                     android:text="1: "
@@ -71,7 +74,7 @@
                     android:layout_height="wrap_content"></TextView>
                 <TextView
                     android:id="@+id/tvDist1"
-                    android:text="500m"
+                    android:text="@string/m"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"></TextView>
             </LinearLayout>
@@ -79,17 +82,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingVertical="4dp" >
+                android:paddingVertical="4dp"
+                android:gravity="center">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ângulo formado: "/>
+                    android:text="@string/ngulo_necess_rio"/>
+
+                <TextView
+                    android:id="@+id/tvAnguloNecessario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ngulo_formado"/>
 
                 <TextView
                     android:id="@+id/tvAngulo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
+
 
         </LinearLayout>
     </LinearLayout>

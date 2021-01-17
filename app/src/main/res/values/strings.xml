@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">AMOV_TP2</string>
+    <string name="dist_ncia_ao_jogador">Distância ao Jogador </string>
+    <string name="m">0 m</string>
+    <string name="ngulo_necess_rio">Ângulo necessário: </string>
+    <string name="ngulo_formado">Ângulo formado: </string>
+    <string name="nomeEquipa">"Nome da equipa: "</string>
+    <string name="numElem">"Numero de elementos: "</string>
+    <string name="novoJogo">Novo jogo</string>
+    <string name="conectar">Conectar</string>
+    <string name="erro">Erro</string>
+    <string name="voltar">Voltar</string>
+    <string name="ligar">Ligar</string>
+    <string name="setIp">Introduzir IP:</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="titulo">O seu IP: </string>
+    <string name="server">Servidor</string>
+    <string name="client">Cliente</string>
 </resources>

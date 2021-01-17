@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
                 layoutParams = paramsTV
-                text = String.format("Nome da equipa: ")
+                text = String.format(context.getString(R.string.nomeEquipa))
                 textSize = 20f
                 setTextColor(Color.rgb(96, 96, 32))
                 textAlignment = View.TEXT_ALIGNMENT_CENTER
@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
                 layoutParams = paramsTV
-                text = String.format("Numero de elementos: ")
+                text = String.format(context.getString(R.string.numElem))
                 textSize = 20f
                 setTextColor(Color.rgb(96, 96, 32))
                 textAlignment = View.TEXT_ALIGNMENT_CENTER
@@ -110,13 +110,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         val dlg = AlertDialog.Builder(this).run {
-            setTitle("Novo jogo")
-            setPositiveButton("Conectar") { _: DialogInterface, _: Int ->
+            setTitle(getString(R.string.novoJogo))
+            setPositiveButton(getString(R.string.conectar)) { _: DialogInterface, _: Int ->
                 var fl = true
                 nome = edNomeEquipa.text.toString()
                 nplayers = edNumJogadores.text.toString().toInt()
                 if (nome.isEmpty()) {
-                    Toast.makeText(this@MainActivity, "Erro", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.erro), Toast.LENGTH_LONG).show()
                     finish()
                 } else {
                     var i = 1
@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
 
                 }
             }
-                setNegativeButton("Voltar") { _: DialogInterface, _: Int ->
+                setNegativeButton(getString(R.string.voltar)) { _: DialogInterface, _: Int ->
                     finish()
                 }
                 setCancelable(false)
@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             var dlg = AlertDialog.Builder(this).run {
-                setTitle("Title")
+                setTitle(getString(R.string.titulo))
                 setView(ll)
                 setOnCancelListener {
                     serverSocket?.close()
@@ -253,19 +253,19 @@ class MainActivity : AppCompatActivity() {
             })
         }
         val dlg = AlertDialog.Builder(this).run {
-            setTitle("Ligar")
-            setMessage("Introduzir IP:")
-            setPositiveButton("Connect") { _: DialogInterface, _: Int ->
+            setTitle(getString(R.string.ligar))
+            setMessage(getString(R.string.setIp))
+            setPositiveButton(getString(R.string.conectar)) { _: DialogInterface, _: Int ->
                 val strIP = edtBox.text.toString()
                 if (strIP.isEmpty() || !Patterns.IP_ADDRESS.matcher(strIP).matches()) {
-                    Toast.makeText(this@MainActivity, "Erro", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.erro), Toast.LENGTH_LONG).show()
                     finish()
                 } else {
                     conectClient(strIP)
 
                 }
             }
-            setNegativeButton("Cancelar") { _: DialogInterface, _: Int ->
+            setNegativeButton(getString(R.string.cancelar)) { _: DialogInterface, _: Int ->
                 finish()
             }
             setCancelable(false)

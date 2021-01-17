@@ -28,10 +28,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
@@ -90,9 +87,8 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
 
         Log.d("doc", "Cheguei: ${idJogador}")
 
-
         fLoc = FusedLocationProviderClient(this)
-
+        tvAnguloNecessario.text = ((nPlayers - 2)*180 / (nPlayers)).toString()
 
         // Prepara Mapa
         var i = 1
@@ -253,22 +249,6 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
         //marker = googleMap.addMarker(markerOptions)
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
 
-        /*map ?: return
-        map.isMyLocationEnabled = true
-        map.mapType = GoogleMap.MAP_TYPE_HYBRID
-        map.uiSettings.isCompassEnabled = true
-        map.uiSettings.isZoomControlsEnabled = true
-        map.uiSettings.isZoomGesturesEnabled = true
-        val cp = CameraPosition.Builder().target(PosAtual).zoom(17f)
-                .bearing(0f).tilt(0f).build()
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(cp))
-        map.add
-        //map.addPolygon()
-        val mo = MarkerOptions().position(ISEC).title("ISEC-IPC")
-            .snippet("Instituto Superior de Engenharia de Coimbra")
-        val isec = map.addMarker(mo)
-        isec.showInfoWindow()
-        map.addMarker(MarkerOptions().position(DEIS).title("DEIS-ISEC"))*/
     }
 
     fun setDistancias() {
