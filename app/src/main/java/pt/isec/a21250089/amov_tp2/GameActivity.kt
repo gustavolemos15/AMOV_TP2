@@ -42,6 +42,7 @@ import kotlinx.android.synthetic.main.dialog_server_mode.*
 import kotlinx.android.synthetic.main.dialog_server_mode.view.*
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlin.concurrent.thread
+import kotlin.math.roundToInt
 
 const val SERVER_MODE = 0
 const val CLIENT_MODE = 1
@@ -70,6 +71,8 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
 
     var maisProx = 0.00
     var maisProx2= 0.00
+    var idJog1 = 0
+    var idJog2 = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,8 +94,10 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
         // Prepara Mapa
         var i = 1
         while(i <= nPlayers) {
+            jogadores.add(Jogador(40.1925, -8.4128, i))
             marcOptions.add(MarkerOptions().position(ISEC).title("${i}"))
             //marcadores[i] = googleMap.addMarker(markerOptions[i])
+
             i++
         }
         //markerOptions = MarkerOptions()
@@ -118,17 +123,19 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
 
                 //Lê dados da firestore
                 Thread.sleep(5000)
-                for(p in 1..nPlayers) {
-                    docRef.document("${p}").get()
+                for(p in jogadores) {
+                    docRef.document("${p.id}").get()
                         .addOnSuccessListener { document ->
                             if (document != null  && document.exists()) {
                                 var la = document.getDouble("latitude")!!
                                 var lo = document.getDouble("longitude")!!
-                                jogadores.add(Jogador(la,lo,p))
+                                p.lat = la
+                                p.long = lo
+                                //jogadores.add(Jogador(la,lo,p))
                                 //marcadores[p-1].position(LatLng(la,lo)).title("${p}")
                                 Log.d("doc", "DocumentSnapshot data: ${document.data}")
                             } else {
-                                Log.d("doc", "No such document ${p}")
+                                Log.d("doc", "No such document ${p.id}")
                             }
                         }
                         .addOnFailureListener { exception ->
@@ -138,7 +145,7 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
                 var i=0
                 for(m in marcadores) {
                     if(jogadores.size > 0)
-                        updateMapa(jogadores[i].lat, jogadores[i].long, m, jogadores[i].id.toString())
+                        updateMapa(jogadores[i].lat, jogadores[i].long, i, jogadores[i].id.toString())
                     i++
                 }
 
@@ -153,37 +160,48 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
                         aux.longitude = j.long
 
                         var d = pos.distanceTo(aux).toDouble()
-                        if(maisProx == 0.0)
+                        if(maisProx == d){
+
+                        }
+                        else if (maisProx2 == d){
+
+                        }
+                        else if (maisProx == 0.0) {
                             maisProx = d
-                        else
-                            if(maisProx2 == 0.0)
-                                maisProx2 = d
-                        else
-                                if(maisProx > d)
-                                    maisProx = d
-                        else
-                                    if(maisProx2 > d)
-                                        maisProx2 = d
+                            idJog1 = j.id
+                        } else if (maisProx2 == 0.0) {
+                            maisProx2 = d
+                            idJog2 = j.id
+                        } else if (maisProx > d) {
+                            maisProx2 = maisProx
+                            maisProx = d
+                            idJog2 = idJog1
+                            idJog1 = j.id
+                        } else if (maisProx2 > d) {
+                            maisProx2 = d
+                            idJog2 = j.id
+                        }
                     }
-
                 }
-
-            }while(!fl)
+            } while(!fl)
         }
     }
 
-    private fun updateMapa(lat: Double, lon : Double, marc : Marker, id: String) {
+    private fun updateMapa(lat: Double, lon : Double, i: Int, id: String) {
         runOnUiThread {
             val newLatLng = LatLng(lat, lon)
-            marc.position = newLatLng
+            marcadores[i].position = newLatLng
+            marcadores[i].title = id
             if(id.compareTo(idJogador) == 0) {
                 cameraPosition = CameraPosition.Builder()
                         .target(newLatLng)
                         .zoom(17f).build()
                 googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
             }
-            tvDist1.text = maisProx.toString()
-            tvDist2.text = maisProx2.toString()
+            tvDist1.text = "${maisProx.roundToInt()}m"
+            tvJog1.text = "${idJog1}= "
+            tvDist2.text = "${maisProx2.roundToInt()}m"
+            tvJog2.text = "${idJog2}= "
         }
     }
 
@@ -250,6 +268,10 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap : GoogleMap?) {
         this.googleMap = googleMap!!
+        this.googleMap.mapType = GoogleMap.MAP_TYPE_HYBRID
+        this.googleMap.uiSettings.isCompassEnabled = true
+        this.googleMap.uiSettings.isZoomControlsEnabled = true
+        this.googleMap.uiSettings.isZoomGesturesEnabled = true
         var i=0;
         while (i < nPlayers) {
             var mk =  googleMap.addMarker(MarkerOptions().position(ISEC).title("${i+1}"))
