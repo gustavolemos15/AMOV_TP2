@@ -119,18 +119,15 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "Erro", Toast.LENGTH_LONG).show()
                     finish()
                 } else {
-                    var docData = hashMapOf(
-                        Constants.NPLAYERS to nplayers,
-                        Constants.FLAG to false
-                    )
-                    db.collection(Constants.COLLECTION).document("${nome}").set(docData)
                     var i = 1
                     while (i <= nplayers){
-                        var d = hashMapOf("p${i}" to arrayListOf(0, 0))
-                        db.collection(Constants.COLLECTION).document("${nome}").set(
-                            d,
-                            SetOptions.merge()
+
+                        var doc = hashMapOf(
+                            "latitude" to 0,
+                            "longitude" to  0,
+                            "nPlayers" to nplayers
                         )
+                        db.collection("${nome}").document("${i}").set(doc)
                         i++
                     }
                     conectServer()
@@ -198,19 +195,16 @@ class MainActivity : AppCompatActivity() {
             var i = 1
             serverSocket = ServerSocket(SERVER_PORT)
             do {
-                var menssagem: Mensagem = Mensagem(nome, "p${i + 1}", nplayers)
+                var menssagem: Mensagem = Mensagem(nome, "${i + 1}", nplayers)
                 var strMenssagem :String = Gson().toJson(menssagem)
                 serverSend(serverSocket!!.accept(), strMenssagem)
                 i++
             }while (i < nplayers)
 
-            var d = hashMapOf(Constants.FLAG to true)
-            db.collection(Constants.COLLECTION).document("${nome}").set(d, SetOptions.merge())
-
             val intent = Intent(this, GameActivity::class.java)
             intent.putExtra(Constants.INTENT_NOME_EQUIPA, nome)
             intent.putExtra(Constants.INTENT_NJOGADORES, nplayers)
-            intent.putExtra(Constants.INTENT_IDJOGADOR, "p1")
+            intent.putExtra(Constants.INTENT_IDJOGADOR, "1")
             startActivity(intent)
        }
             dlg?.show()

@@ -30,13 +30,17 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.getField
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.activity_game.*
 import kotlinx.android.synthetic.main.dialog_server_mode.*
 import kotlinx.android.synthetic.main.dialog_server_mode.view.*
+import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlin.concurrent.thread
 
 const val SERVER_MODE = 0
@@ -49,10 +53,23 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
     var nPlayers :Int = 0
     lateinit var idJogador : String
     var db = FirebaseFirestore.getInstance()
+    var jogadores = mutableListOf<Jogador>()
+
+    var marcadores = mutableListOf<Marker>()
+    var marcOptions = mutableListOf<MarkerOptions>()
+    val ISEC = LatLng(40.1925, -8.4115)
+
+    private lateinit var markerOptions: MarkerOptions
+    private lateinit var marker: Marker
+    private lateinit var cameraPosition: CameraPosition
+    lateinit var googleMap:GoogleMap
 
     var PosAtual = LatLng(40.1925, -8.4128)
     lateinit var fLoc : FusedLocationProviderClient
     var locActive = false
+
+    var maisProx = 0.00
+    var maisProx2= 0.00
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,43 +79,112 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
         nPlayers = intent.getIntExtra(Constants.INTENT_NJOGADORES, 0)
         idJogador = intent.getStringExtra(Constants.INTENT_IDJOGADOR).toString()
 
-        val docRef = db.collection(Constants.COLLECTION).document("${nomeEquipa}")
+        val docRef = db.collection("${nomeEquipa}")
 
 
         Log.d("doc", "Cheguei: ${idJogador}")
 
-        var i = 11
-        var fl = false
 
         fLoc = FusedLocationProviderClient(this)
+
+
+        // Prepara Mapa
+        var i = 1
+        while(i <= nPlayers) {
+            marcOptions.add(MarkerOptions().position(ISEC).title("${i}"))
+            //marcadores[i] = googleMap.addMarker(markerOptions[i])
+            i++
+        }
+        //markerOptions = MarkerOptions()
+        //markerOptions.position(PosAtual).title(idJogador)
+        cameraPosition = CameraPosition.Builder()
+            .target(PosAtual)
+            .zoom(17f).build()
+
         //esta linha tem de ser depois do setContentView
         (supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment)?.getMapAsync(this)
 
+        var fl = false
+        i = 1
         thread {
             do {
+                //Prepara data e escreve
                 var data = hashMapOf(
-                    "${idJogador}" to arrayListOf(i, i)
+                    "latitude" to PosAtual.latitude,
+                    "longitude" to PosAtual.longitude
                 )
-                db.collection("Equipas").document("${nomeEquipa}").set(data, SetOptions.merge())
-                i++
+                db.collection("${nomeEquipa}").document("${idJogador}").set(data, SetOptions.merge())
 
+
+                //Lê dados da firestore
                 Thread.sleep(5000)
-                docRef.get()
-                    .addOnSuccessListener { document ->
-                        if (document != null) {
-                            Log.d("doc", "DocumentSnapshot data: ${document.data}")
-                        } else {
-                            Log.d("doc", "No such document")
+                for(p in 1..nPlayers) {
+                    docRef.document("${p}").get()
+                        .addOnSuccessListener { document ->
+                            if (document != null  && document.exists()) {
+                                var la = document.getDouble("latitude")!!
+                                var lo = document.getDouble("longitude")!!
+                                jogadores.add(Jogador(la,lo,p))
+                                //marcadores[p-1].position(LatLng(la,lo)).title("${p}")
+                                Log.d("doc", "DocumentSnapshot data: ${document.data}")
+                            } else {
+                                Log.d("doc", "No such document ${p}")
+                            }
                         }
+                        .addOnFailureListener { exception ->
+                            Log.d("doc", "get failed with ", exception)
+                        }
+                }
+                var i=0
+                for(m in marcadores) {
+                    if(jogadores.size > 0)
+                        updateMapa(jogadores[i].lat, jogadores[i].long, m, jogadores[i].id.toString())
+                    i++
+                }
+
+                if(jogadores.size == nPlayers) {
+                    var pos = Location("posAtual")
+                    pos.latitude = PosAtual.latitude
+                    pos.longitude = PosAtual.longitude
+
+                    for(j in jogadores) {
+                        var aux = Location("pos")
+                        aux.latitude = j.lat
+                        aux.longitude = j.long
+
+                        var d = pos.distanceTo(aux).toDouble()
+                        if(maisProx == 0.0)
+                            maisProx = d
+                        else
+                            if(maisProx2 == 0.0)
+                                maisProx2 = d
+                        else
+                                if(maisProx > d)
+                                    maisProx = d
+                        else
+                                    if(maisProx2 > d)
+                                        maisProx2 = d
                     }
-                    .addOnFailureListener { exception ->
-                        Log.d("doc", "get failed with ", exception)
-                    }
-                if(i == 20)
-                    fl = true
+
+                }
+
             }while(!fl)
         }
+    }
 
+    private fun updateMapa(lat: Double, lon : Double, marc : Marker, id: String) {
+        runOnUiThread {
+            val newLatLng = LatLng(lat, lon)
+            marc.position = newLatLng
+            if(id.compareTo(idJogador) == 0) {
+                cameraPosition = CameraPosition.Builder()
+                        .target(newLatLng)
+                        .zoom(17f).build()
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+            }
+            tvDist1.text = maisProx.toString()
+            tvDist2.text = maisProx2.toString()
+        }
     }
 
     override fun onResume() {
@@ -114,11 +200,7 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
         }
     }
 
-    override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<out String>,
-            grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         startLocationUpdates(false)
     }
@@ -159,26 +241,34 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
             p0?.locations?.forEach {
                 Log.i(TAG, "localtionCallback: ${it.latitude} ${it.longitude}")
                 PosAtual = LatLng(it.latitude, it.longitude)
+                Log.i(TAG, "onLocationResult: PosAtual(${PosAtual.latitude}, ${PosAtual.longitude}) ")
             }
         }
     }
 
-    val ISEC = LatLng(40.1925, -8.4115)
-    val DEIS = LatLng(40.1925, -8.4128)
-
     //a linha a abaixo diz ao AS que nós temos a certeza que neste momento já temos a permissão necessária
     @SuppressLint("MissingPermission")
-    override fun onMapReady(map : GoogleMap?) {
-        map ?: return
+    override fun onMapReady(googleMap : GoogleMap?) {
+        this.googleMap = googleMap!!
+        var i=0;
+        while (i < nPlayers) {
+            var mk =  googleMap.addMarker(MarkerOptions().position(ISEC).title("${i+1}"))
+            marcadores.add(mk)
+            i++
+        }
+        //marker = googleMap.addMarker(markerOptions)
+        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+
+        /*map ?: return
         map.isMyLocationEnabled = true
         map.mapType = GoogleMap.MAP_TYPE_HYBRID
         map.uiSettings.isCompassEnabled = true
         map.uiSettings.isZoomControlsEnabled = true
         map.uiSettings.isZoomGesturesEnabled = true
-        val cp = CameraPosition.Builder().target(ISEC).zoom(17f)
+        val cp = CameraPosition.Builder().target(PosAtual).zoom(17f)
                 .bearing(0f).tilt(0f).build()
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cp))
-        /*map.add
+        map.add
         //map.addPolygon()
         val mo = MarkerOptions().position(ISEC).title("ISEC-IPC")
             .snippet("Instituto Superior de Engenharia de Coimbra")
@@ -188,5 +278,9 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
     }
 }
 
-
+class Jogador(la: Double, lo: Double, i: Int){
+    var lat :Double = la
+    var long :Double = lo
+    var id : Int = i
+}
 
