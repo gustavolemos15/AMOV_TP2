@@ -73,6 +73,9 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
     var maisProx2= 0.00
     var idJog1 = 0
     var idJog2 = 0
+    var angulo = 0
+    var a1 = Location("a1")
+    var a2 = Location("a2")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -149,40 +152,8 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
                     i++
                 }
 
-                if(jogadores.size == nPlayers) {
-                    var pos = Location("posAtual")
-                    pos.latitude = PosAtual.latitude
-                    pos.longitude = PosAtual.longitude
+                setDistancias()
 
-                    for(j in jogadores) {
-                        var aux = Location("pos")
-                        aux.latitude = j.lat
-                        aux.longitude = j.long
-
-                        var d = pos.distanceTo(aux).toDouble()
-                        if(maisProx == d){
-
-                        }
-                        else if (maisProx2 == d){
-
-                        }
-                        else if (maisProx == 0.0) {
-                            maisProx = d
-                            idJog1 = j.id
-                        } else if (maisProx2 == 0.0) {
-                            maisProx2 = d
-                            idJog2 = j.id
-                        } else if (maisProx > d) {
-                            maisProx2 = maisProx
-                            maisProx = d
-                            idJog2 = idJog1
-                            idJog1 = j.id
-                        } else if (maisProx2 > d) {
-                            maisProx2 = d
-                            idJog2 = j.id
-                        }
-                    }
-                }
             } while(!fl)
         }
     }
@@ -202,6 +173,7 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
             tvJog1.text = "${idJog1}= "
             tvDist2.text = "${maisProx2.roundToInt()}m"
             tvJog2.text = "${idJog2}= "
+            tvAngulo.text = angulo.toString()
         }
     }
 
@@ -297,6 +269,49 @@ class GameActivity : AppCompatActivity(), LocationListener, OnMapReadyCallback {
         val isec = map.addMarker(mo)
         isec.showInfoWindow()
         map.addMarker(MarkerOptions().position(DEIS).title("DEIS-ISEC"))*/
+    }
+
+    fun setDistancias() {
+        if (jogadores.size == nPlayers) {
+            var pos = Location("posAtual")
+            pos.latitude = PosAtual.latitude
+            pos.longitude = PosAtual.longitude
+
+
+
+            for (j in jogadores) {
+                var aux = Location("pos")
+                aux.latitude = j.lat
+                aux.longitude = j.long
+
+                var d = pos.distanceTo(aux).toDouble()
+                if(pos.distanceTo(aux).toInt() != 0) {
+                    if (maisProx == 0.0) {
+                        maisProx = d
+                        idJog1 = j.id
+                        a1 = aux
+                    } else if (maisProx2 == 0.0) {
+                        maisProx2 = d
+                        idJog2 = j.id
+                        a2 = aux
+                    } else if (maisProx > d) {
+                        maisProx2 = maisProx
+                        maisProx = d
+                        a2 = a1
+                        a1 = aux
+                        idJog2 = idJog1
+                        idJog1 = j.id
+                    } else if (maisProx2 > d && d != maisProx) {
+                        maisProx2 = d
+                        idJog2 = j.id
+                        a2 = aux
+                    }
+                    var d3 = a1.distanceTo(a2)
+                    var ratio = (maisProx*maisProx + maisProx2*maisProx2 - d3*d3) / (2*maisProx*maisProx2)
+                    angulo = (Math.acos(ratio)*(180/Math.PI)).toInt()
+                }
+            }
+        }
     }
 }
 
